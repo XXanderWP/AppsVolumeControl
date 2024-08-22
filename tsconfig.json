@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "baseUrl": ".",
+        "module": "commonjs",
+        "target": "es2021",
+        "allowJs": true,
+        "lib": ["es2021", "dom", "dom.iterable", "esnext"],
+        "moduleResolution": "Node",
+        "paths": {
+            "_/*": ["src/*"],
+            "_public/*": ["public/*"],
+            "_shared/*": ["src/shared/*"],
+            "_main/*": ["src/backend/main/*"],
+            "_renderer/*": ["src/frontend/renderer/*"],
+            "_preload/*": ["src/frontend/preload/*"],
+            "_types/*": ["src/types/*"],
+            "_utils/*": ["src/utils/*"],
+            "_tests/*": ["tests/*"]
+        },
+        "types": ["./node_modules/@types", "./src/types", "@overwolf/ow-electron-packages-types"],
+        "sourceMap": true,
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true,
+        "jsx": "react",
+        "resolveJsonModule": true
+    },
+    "include": ["src/**/*"]
+}
