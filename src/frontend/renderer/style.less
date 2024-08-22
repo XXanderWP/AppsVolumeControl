@@ -1,0 +1,137 @@
+@import '~rsuite/styles/index.less';
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap');
+
+* {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 400;
+}
+
+.mainHeader {
+    -webkit-app-region: drag;
+    background: var(--rs-gray-800);
+    padding-left: 10px;
+    padding-right: 10px;
+    display: flex;
+    font-size: 15px;
+    line-height: 25px;
+    height: 25px;
+    position: sticky;
+    z-index: 9999;
+    width: -webkit-fill-available;
+    top: 0;
+    left: 0;
+    .title {
+        width: -webkit-fill-available;
+        cursor: grab;
+    }
+    .control {
+        & > span:not(:last-child) {
+            margin-right: 10px;
+        }
+        & > span {
+            -webkit-app-region: none;
+            cursor: pointer;
+            font-weight: 800;
+        }
+    }
+}
+
+.mainBlock {
+    padding-top: 25px;
+    .newRecord,
+    .loading,
+    .text,
+    .record {
+        margin-left: 10px;
+        margin-right: 10px;
+        margin-top: 10px;
+        width: -webkit-fill-available;
+    }
+    .loading,
+    .text,
+    .record {
+        background: var(--rs-gray-800);
+        border-radius: 5px;
+        display: flex;
+        padding: 5px;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    .loading {
+        text-align: center;
+    }
+    .record {
+        .left {
+            margin: auto;
+            margin-left: 0;
+            display: flex;
+            & > * {
+                //
+                margin: auto;
+                margin-right: 10px;
+            }
+        }
+        .buttons {
+            & > *:not(:last-child) {
+                margin-right: 10px;
+            }
+            margin: auto;
+            margin-right: 0;
+        }
+    }
+    .edit {
+        border: 2px solid var(--rs-gray-800);
+        border-top: none;
+        margin-left: 40px;
+        margin-right: 10px;
+        padding: 10px;
+    }
+}
+
+@scrollBarSize: 8px;
+@scrollBarSize2: 12px;
+@scrollBarTrack: #131313;
+@scrollBarBG: rgba(92, 92, 92, 0.726);
+@scrollBarBGHover: rgba(92, 92, 92);
+
+* {
+    overscroll-behavior: contain;
+}
+
+::-webkit-scrollbar {
+    width: @scrollBarSize;
+}
+
+::-webkit-scrollbar-track {
+    background: @scrollBarTrack;
+}
+
+::-webkit-scrollbar-thumb {
+    background: @scrollBarBG;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: @scrollBarBGHover;
+    width: @scrollBarSize2;
+}
+////////////////////
+////////////////////
+////////////////////
+::-webkit-scrollbar:horizontal {
+    height: @scrollBarSize;
+}
+
+::-webkit-scrollbar-track:horizontal {
+    background: @scrollBarTrack;
+}
+
+::-webkit-scrollbar-thumb:horizontal {
+    background: @scrollBarBG;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:horizontal:hover {
+    background: @scrollBarBGHover;
+    height: @scrollBarSize2;
+}
