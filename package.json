@@ -15,7 +15,9 @@
         "next-patch": "npm version patch",
         "next-minor": "npm version minor",
         "next-major": "npm version major",
-        "build:win": "ow-electron-builder build --win --publish never"
+        "build:win": "ow-electron-builder build --win --publish never",
+        "build:winGit": "ow-electron-builder build --win --publish always",
+        "push": "git push --follow-tags"
     },
     "build": {
         "appId": "com.xanderwp.appvolumecontrol",
@@ -38,6 +40,13 @@
         "nsis": {
             "oneClick": false,
             "allowToChangeInstallationDirectory": true
+        },
+        "publish": {
+            "provider": "github",
+            "host": "github.com",
+            "owner": "XXanderWP",
+            "repo": "AppsVolumeControl",
+            "releaseType": "draft"
         }
     },
     "author": "XXanderWP <xanderwp@pm.me> (https://xanderwp.site/)",
