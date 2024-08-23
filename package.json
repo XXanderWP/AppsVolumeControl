@@ -1,6 +1,6 @@
 {
     "name": "apps-volume-control",
-    "version": "1.2.2",
+    "version": "1.2.3",
     "description": "Control applications volume by hotkey",
     "main": "./dist/main.bundle.js",
     "scripts": {
