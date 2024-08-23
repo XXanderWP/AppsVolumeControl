@@ -30,14 +30,24 @@
         }
         & > span {
             -webkit-app-region: none;
-            cursor: pointer;
-            font-weight: 800;
+            &:not(.version) {
+                cursor: pointer;
+                font-weight: 800;
+            }
+            &.version {
+                font-size: 12px;
+            }
         }
     }
 }
 
 .mainBlock {
-    .newRecord,
+    .newRecord {
+        margin-left: 5px;
+        margin-right: 5px;
+        margin-top: 10px;
+        width: -webkit-fill-available;
+    }
     .loading,
     .text,
     .record {
@@ -60,6 +70,9 @@
         text-align: center;
     }
     .record {
+        &.editor {
+            border-radius: 5px 5px 0 5px;
+        }
         .left {
             margin: auto;
             margin-left: 0;

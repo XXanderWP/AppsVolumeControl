@@ -108,8 +108,8 @@ app.on('ready', async () => {
     });
 
     mainWindow = new BrowserWindow({
-        height: 880,
-        width: 600,
+        width: 500,
+        height: 300,
         minWidth: 500,
         minHeight: 300,
         webPreferences: {
@@ -140,6 +140,7 @@ ipcMain.on('renderer-ready', (ev) => {
     ev.sender.send('sendRecords', store.get('records'));
     ev.sender.send('setLock', store.get('lockTop'));
     ev.sender.send('getProcesses', processes);
+    ev.sender.send('version', `v${app.getVersion()}`);
 });
 
 ipcMain.on('createRecord', (ev) => {

@@ -25,6 +25,7 @@ const Field = React.memo(
             label: string;
             value: string;
         }[];
+        maxLen?: number;
     }) => {
         const [val, setVal] = React.useState(props.defaultValue);
         const [click, setClicked] = React.useState(false);
@@ -44,7 +45,7 @@ const Field = React.memo(
                     placeholder={typeof val === 'number' ? val.toString() : 'Click to edit ...'}
                     value={val}
                     onChange={(e) => {
-                        setVal(e);
+                        setVal(props.maxLen ? e.substring(0, props.maxLen) : e);
                     }}
                     onSave={(e) => {
                         if (props.onSave) {
@@ -109,7 +110,9 @@ export const DrawToolTip = React.memo(
 
 function App(): JSX.Element {
     const contacts = location.search.includes('contacts');
+    const [version, setVersion] = React.useState<string>();
     const [edit, setEdit] = React.useState<string>();
+    const [removeAccept, setRemoveAccept] = React.useState<string>();
     const [records, setRecords] = React.useState<ControllerData[]>();
     const [lock, setLock] = React.useState(false);
 
@@ -123,6 +126,10 @@ function App(): JSX.Element {
     >([]);
 
     useEffect(() => {
+        window.ipcAPI?.listen('version', (q) => {
+            setVersion(q);
+        });
+
         if (!contacts) {
             window.ipcAPI?.listen(
                 'updateProcess',
@@ -179,32 +186,57 @@ function App(): JSX.Element {
                     return [...old];
                 });
             });
-
-            window.ipcAPI?.rendererReady();
         }
+
+        window.ipcAPI?.rendererReady();
     }, []);
 
     return (
         <>
             <CustomProvider theme="dark">
                 <div className="mainHeader">
-                    <span className="title">{APP_NAME}</span>
+                    <span className="title">
+                        {APP_NAME}
+                        {contacts ? ' | Contacts page' : ''}
+                    </span>
                     <span className="control">
-                        <span
-                            onClick={(e) => {
-                                e.preventDefault();
-                                window.ipcAPI?.sendData('minimizeWindow', true);
-                            }}
-                        >
-                            _
-                        </span>
+                        {version ? (
+                            <DrawToolTip
+                                trigger="hover"
+                                text="Current app version"
+                                placement="bottomStart"
+                            >
+                                <span className="version">{version}</span>
+                            </DrawToolTip>
+                        ) : (
+                            <></>
+                        )}
+                        {!contacts ? (
+                            <span
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    window.ipcAPI?.sendData('minimizeWindow', true);
+                                }}
+                                style={{
+                                    color: 'yellow',
+                                }}
+                            >
+                                •
+                            </span>
+                        ) : (
+                            <></>
+                        )}
+
                         <span
                             onClick={(e) => {
                                 e.preventDefault();
                                 window.ipcAPI?.sendData('closeWindow', true);
                             }}
+                            style={{
+                                color: 'red',
+                            }}
                         >
-                            x
+                            •
                         </span>
                     </span>
                 </div>
@@ -256,6 +288,7 @@ function App(): JSX.Element {
                                     <Col xs={24 - 12}>
                                         <DrawToolTip text="Create new controller" trigger="hover">
                                             <IconButton
+                                                size="sm"
                                                 className="newRecord"
                                                 color={'green'}
                                                 appearance="ghost"
@@ -273,6 +306,7 @@ function App(): JSX.Element {
                                     <Col xs={9}>
                                         <DrawToolTip text="Lock on top" trigger="hover">
                                             <IconButton
+                                                size="sm"
                                                 className="newRecord"
                                                 color={lock ? 'yellow' : 'blue'}
                                                 appearance="ghost"
@@ -289,8 +323,9 @@ function App(): JSX.Element {
                                     <Col xs={3}>
                                         <DrawToolTip text="Contacts" trigger="hover">
                                             <IconButton
+                                                size="sm"
                                                 className="newRecord"
-                                                color={lock ? 'yellow' : 'blue'}
+                                                color={'violet'}
                                                 appearance="ghost"
                                                 icon={<SentToUserIcon />}
                                                 onClick={(e) => {
@@ -317,8 +352,13 @@ function App(): JSX.Element {
                                     : undefined;
 
                                 return (
-                                    <>
-                                        <div key={record.id} className="record">
+                                    <div key={i}>
+                                        <div
+                                            key={record.id}
+                                            className={`record ${
+                                                edit === record.id ? 'editor' : ''
+                                            }`}
+                                        >
                                             <div className="left">
                                                 <span className="index">
                                                     #{i + 1}
@@ -342,72 +382,112 @@ function App(): JSX.Element {
                                                 )}
                                             </div>
                                             <div className="buttons">
-                                                <Button
-                                                    appearance="ghost"
-                                                    size="xs"
-                                                    color={edit === record.id ? 'yellow' : 'blue'}
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
+                                                {removeAccept === record.id ? (
+                                                    <>
+                                                        <span>Are you sure?</span>
+                                                        <Button
+                                                            appearance="ghost"
+                                                            size="xs"
+                                                            color={'red'}
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                setRemoveAccept(undefined);
 
-                                                        setEdit((old) => {
-                                                            return old === record.id
-                                                                ? undefined
-                                                                : record.id;
-                                                        });
-                                                    }}
-                                                >
-                                                    {edit === record.id ? 'Close' : 'Edit'}
-                                                </Button>
-                                                <Button
-                                                    appearance="ghost"
-                                                    size="xs"
-                                                    color="red"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
+                                                                window.ipcAPI?.sendData(
+                                                                    'removeItem',
+                                                                    record.id,
+                                                                );
 
-                                                        window.ipcAPI?.sendData(
-                                                            'removeItem',
-                                                            record.id,
-                                                        );
+                                                                setRecords((old) => {
+                                                                    if (!old) {
+                                                                        old = [];
+                                                                    }
 
-                                                        setRecords((old) => {
-                                                            if (!old) {
-                                                                old = [];
+                                                                    const index = old.findIndex(
+                                                                        (q) => q.id === record.id,
+                                                                    );
+
+                                                                    if (index > -1) {
+                                                                        old.splice(index, 1);
+                                                                    }
+
+                                                                    return [...old];
+                                                                });
+                                                            }}
+                                                        >
+                                                            Yes, remove
+                                                        </Button>
+                                                        <Button
+                                                            appearance="ghost"
+                                                            size="xs"
+                                                            color={'blue'}
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+
+                                                                setRemoveAccept(undefined);
+                                                            }}
+                                                        >
+                                                            No, Cancel
+                                                        </Button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Button
+                                                            appearance="ghost"
+                                                            size="xs"
+                                                            color={
+                                                                edit === record.id
+                                                                    ? 'yellow'
+                                                                    : 'blue'
                                                             }
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
 
-                                                            const index = old.findIndex(
-                                                                (q) => q.id === record.id,
-                                                            );
-
-                                                            if (index > -1) {
-                                                                old.splice(index, 1);
+                                                                setEdit((old) => {
+                                                                    return old === record.id
+                                                                        ? undefined
+                                                                        : record.id;
+                                                                });
+                                                            }}
+                                                        >
+                                                            {edit === record.id ? 'Close' : 'Edit'}
+                                                        </Button>
+                                                        <Button
+                                                            appearance="ghost"
+                                                            size="xs"
+                                                            color="red"
+                                                            onClick={(e) => {
+                                                                setRemoveAccept(record.id);
+                                                            }}
+                                                        >
+                                                            Remove
+                                                        </Button>
+                                                        <Button
+                                                            appearance="ghost"
+                                                            size="xs"
+                                                            color={
+                                                                record.status ? 'green' : 'violet'
                                                             }
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
 
-                                                            return [...old];
-                                                        });
-                                                    }}
-                                                >
-                                                    Remove
-                                                </Button>
-                                                <Button
-                                                    appearance="ghost"
-                                                    size="xs"
-                                                    color={record.status ? 'green' : 'violet'}
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-
-                                                        window.ipcAPI?.sendData('updateParam', {
-                                                            id: record.id,
-                                                            status: !record.status,
-                                                        });
-                                                    }}
-                                                >
-                                                    {record.status ? 'ON' : 'OFF'}
-                                                </Button>
+                                                                window.ipcAPI?.sendData(
+                                                                    'updateParam',
+                                                                    {
+                                                                        id: record.id,
+                                                                        status: !record.status,
+                                                                    },
+                                                                );
+                                                            }}
+                                                        >
+                                                            {record.status ? 'ON' : 'OFF'}
+                                                        </Button>
+                                                    </>
+                                                )}
                                             </div>
                                         </div>
                                         {edit === record.id ? (
-                                            <div className="edit">
+                                            <div className="edit" key={`edit_${record.id}`}>
                                                 <Stack
                                                     direction="column"
                                                     alignItems="flex-start"
@@ -416,6 +496,7 @@ function App(): JSX.Element {
                                                     <Field
                                                         label="Name"
                                                         as={Input}
+                                                        maxLen={25}
                                                         key={`name_editor_${record.name}`}
                                                         defaultValue={record.name || ''}
                                                         onSave={(val) => {
@@ -429,18 +510,29 @@ function App(): JSX.Element {
                                                         label="Choose process"
                                                         key={`name_editor_${record.process}`}
                                                         as={SelectPicker}
-                                                        data={processes.map((q) => {
-                                                            return {
-                                                                label: q.title
-                                                                    ? `${
-                                                                          q.name
-                                                                              ? `[${q.name}]`
-                                                                              : ''
-                                                                      } ${q.title}`
-                                                                    : q.name,
-                                                                value: q.name,
-                                                            };
-                                                        })}
+                                                        data={[
+                                                            record.process &&
+                                                            !processes.find(
+                                                                (a) => a.name === record.process,
+                                                            )
+                                                                ? {
+                                                                      label: `${record.process} [CLOSED]`,
+                                                                      value: record.process,
+                                                                  }
+                                                                : (undefined as any),
+                                                            ...processes.map((q) => {
+                                                                return {
+                                                                    label: q.title
+                                                                        ? `${
+                                                                              q.name
+                                                                                  ? `[${q.name}]`
+                                                                                  : ''
+                                                                          } ${q.title}`
+                                                                        : q.name,
+                                                                    value: q.name,
+                                                                };
+                                                            }),
+                                                        ].filter((q) => q)}
                                                         defaultValue={record.process}
                                                         onSave={(val) => {
                                                             window.ipcAPI?.sendData('updateParam', {
@@ -459,12 +551,14 @@ function App(): JSX.Element {
                                                         label="Select hotkey"
                                                         key={`hotkey_editor_${record.hotkey}`}
                                                         as={SelectPicker}
-                                                        data={HotkeysList.map((q) => {
-                                                            return {
-                                                                label: q,
-                                                                value: q,
-                                                            };
-                                                        })}
+                                                        data={[
+                                                            ...HotkeysList.map((q) => {
+                                                                return {
+                                                                    label: q,
+                                                                    value: q,
+                                                                };
+                                                            }),
+                                                        ]}
                                                         defaultValue={record.hotkey}
                                                         onSave={(val) => {
                                                             window.ipcAPI?.sendData('updateParam', {
@@ -502,7 +596,7 @@ function App(): JSX.Element {
                                         ) : (
                                             <></>
                                         )}
-                                    </>
+                                    </div>
                                 );
                             })}
                         </>
