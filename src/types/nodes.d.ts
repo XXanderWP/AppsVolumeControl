@@ -6,5 +6,8 @@ declare module '*volume.node' {
         title: string;
         volume: number;
     }[];
-    export function setProcessVolume(pid: number, volume: number): any[];
+    export function setVolume(pid: number, volume: number): any[];
+    export function getProcessesData(
+        pids: number[],
+    ): { pid: number; volume: number; title: string }[];
 }

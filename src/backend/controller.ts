@@ -1,5 +1,5 @@
 import { ControllerData } from '_/shared/controller';
-import { setProcessVolume } from '../extra/volume.node';
+import { setVolume } from '../extra/volume.node';
 import { HotkeysList } from '_/shared/hotkeys';
 import { processes } from './processes';
 
@@ -27,7 +27,7 @@ export class VolumeController {
     }
 
     set volume(val) {
-        setProcessVolume(this.pid, val);
+        setVolume(this.pid, val);
     }
 
     get storeData(): ControllerData {

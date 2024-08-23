@@ -1,14 +1,13 @@
 import path from 'path';
 import { APP_NAME } from '_/shared/app';
 import { BrowserWindow, app, ipcMain, Tray, Menu, globalShortcut, shell } from 'electron';
-import { setProcessVolume } from '../extra/volume.node';
 import './controller';
 import { VolumeController } from './controller';
 import { store } from './storage';
 import { ControllerData } from '_/shared/controller';
 import { HotkeysList } from '_/shared/hotkeys';
-import { ManualUpdateProcesses, processes } from './processes';
-
+import { setVolume } from '../extra/volume.node';
+import { ManualUpdateProcesses, SetPidVolume, processes } from './processes';
 let controllers: VolumeController[] = [];
 
 app.setName(APP_NAME);
@@ -55,11 +54,13 @@ app.whenReady()
                             return;
                         }
 
-                        const volume = current !== item.min ? item.min : item.max;
+                        const setMin = Math.abs(current - item.min) > Math.abs(current - item.max);
+                        const volume = setMin ? item.min : item.max;
                         const pid = item.pid;
 
                         if (pid) {
-                            setProcessVolume(pid, volume / 100);
+                            setVolume(pid, volume / 100);
+                            SetPidVolume(pid, volume / 100);
 
                             mainWindow?.webContents.send('updateProcess', {
                                 pid,
@@ -70,10 +71,6 @@ app.whenReady()
                         }
                     }
                 });
-
-                if (changed) {
-                    ManualUpdateProcesses();
-                }
             });
 
             // console.log('Register key', !!item);
@@ -98,7 +95,8 @@ ipcMain.on('relaunch', (event, arg) => {
 
 let mainWindow: BrowserWindow;
 
-app.on('ready', () => {
+app.on('ready', async () => {
+    await ManualUpdateProcesses();
     const records = store.get('records');
 
     controllers = [];
@@ -203,6 +201,7 @@ ipcMain.on('updateParam', (ev, param: Partial<ControllerData> & { id: string }) 
 });
 
 ipcMain.on('updateProcesses', (ev) => {
+    ManualUpdateProcesses();
     ev.sender.send('getProcesses', processes);
 });
 

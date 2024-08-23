@@ -431,7 +431,13 @@ function App(): JSX.Element {
                                                         as={SelectPicker}
                                                         data={processes.map((q) => {
                                                             return {
-                                                                label: `[${q.name}] ${q.title}`,
+                                                                label: q.title
+                                                                    ? `${
+                                                                          q.name
+                                                                              ? `[${q.name}]`
+                                                                              : ''
+                                                                      } ${q.title}`
+                                                                    : q.name,
                                                                 value: q.name,
                                                             };
                                                         })}
