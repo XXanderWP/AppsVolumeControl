@@ -44,8 +44,6 @@ app.whenReady()
 
         HotkeysList.forEach((key) => {
             globalShortcut.register(key, () => {
-                let changed = false;
-
                 controllers.forEach((item) => {
                     if (item.status && item.hotkey === key) {
                         const current = Math.floor(item.volume * 100);
@@ -66,14 +64,10 @@ app.whenReady()
                                 pid,
                                 volume: volume / 100,
                             });
-
-                            changed = true;
                         }
                     }
                 });
             });
-
-            // console.log('Register key', !!item);
         });
     })
     .finally(() => {
@@ -150,6 +144,7 @@ ipcMain.on('createRecord', (ev) => {
     });
 
     store.set('records', [...store.get('records'), record.storeData]);
+    controllers.push(record);
     ev.sender.send('addRecord', record.storeData);
 });
 
