@@ -1,17 +1,14 @@
 import { getProcessesData } from '../extra/volume.node';
 import { tasklist } from 'tasklist';
-interface ProcessInfo {
-    pid: number;
-    name: string;
-}
 
 export let processes: { pid: number; name: string; volume: number; title: string | null }[] = [];
 
 const tick = async () => {
     console.log('Updating process list');
 
-    // const data = (await getProcessList()).filter((q) => q.name.endsWith('.exe'));
-    const data = (await tasklist())
+    const tasks = await tasklist();
+
+    const data = tasks
         .filter((q: any) => q.imageName.endsWith('.exe') && q.sessionName !== 'Services')
         .map((q: any) => {
             return { ...q, name: q.imageName };
@@ -21,14 +18,12 @@ const tick = async () => {
     let process: { pid: number; name: string; volume: number; title: string | null }[] = [];
 
     data.forEach((item: any) => {
-        if (!process.find((q) => q.name === item.name)) {
-            process.push({
-                name: item.name,
-                pid: item.pid,
-                title: null,
-                volume: -1,
-            });
-        }
+        process.push({
+            name: item.name,
+            pid: item.pid,
+            title: null,
+            volume: -1,
+        });
     });
 
     const otherData = getProcessesData(process.map((q) => q.pid));
@@ -43,8 +38,29 @@ const tick = async () => {
         return { ...itm, volume: q.volume, title: q.title };
     });
 
-    process = process.filter((q) => q.volume !== -1);
-    processes = process;
+    const processQ = process.filter((q, i) => q.volume !== -1);
+    const processRes: typeof process = [];
+    const processNames: string[] = [];
+
+    processQ.forEach((q) => {
+        if (!processNames.includes(q.name)) {
+            processNames.push(q.name);
+            processRes.push(q);
+        }
+    });
+
+    processes = processRes.map((q) => {
+        if (!q.title) {
+            const title = process.find((a) => a.name === q.name && a.title);
+
+            if (title) {
+                q.title = title.title;
+            }
+        }
+
+        return { ...q };
+    });
+
     console.log('Process list updated');
 };
 
