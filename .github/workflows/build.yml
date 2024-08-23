@@ -24,12 +24,8 @@ jobs:
             - name: 🛠️ Build TypeScript sources
               run: npm run build
 
-            - name: 🛠️ Build Electron app
-              run: npm run build:win
-
             - name: 📦 Package Electron app for Windows
-              run: |
-                  npm run package-win
+              run: npm run build:win
 
             - name: 🚀 Create Release
               id: create_release
