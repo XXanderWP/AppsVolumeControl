@@ -24,7 +24,7 @@
 ---
 <br/>
 <br/>
-<center><img src="https://i.imgur.com/aGITfQ9.png"></center>
+<center><img src="https://i.imgur.com/UIEXQO7.png"></center>
 
 ## Key Features
 
