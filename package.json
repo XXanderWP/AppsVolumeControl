@@ -43,10 +43,8 @@
         },
         "publish": {
             "provider": "github",
-            "host": "github.com",
             "owner": "XXanderWP",
-            "repo": "AppsVolumeControl",
-            "releaseType": "draft"
+            "repo": "AppsVolumeControl"
         }
     },
     "author": "XXanderWP <xanderwp@pm.me> (https://xanderwp.site/)",

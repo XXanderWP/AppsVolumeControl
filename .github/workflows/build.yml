@@ -29,22 +29,5 @@ jobs:
 
             - name: 📦 Package Electron app for Windows
               run: npm run build:winGit
-
-            # - name: 🚀 Create Release
-            #   id: create_release
-            #   uses: actions/create-release@v1
-            #   env:
-            #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            #   with:
-            #       tag_name: ${{ github.ref }}
-            #       release_name: Release ${{ github.ref }}
-            #       draft: false
-            #       prerelease: false
-
-            # - name: 📤 Upload Release Assets
-            #   uses: actions/upload-release-asset@v1
-            #   with:
-            #       upload_url: ${{ steps.create_release.outputs.upload_url }}
-            #       asset_path: out/apps-volume-control.exe
-            #       asset_name: installer.exe
-            #       asset_content_type: application/octet-stream
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
