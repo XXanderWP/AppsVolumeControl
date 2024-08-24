@@ -13,6 +13,7 @@ ipcMain.on('downloadUpdate', (ev) => {
 });
 
 let lastUpdateSend: string;
+let notifyUpdate = false;
 
 const setDownloadProgress = (progress: number) => {
     const val = progress.toFixed(1);
@@ -51,7 +52,16 @@ ipcMain.on('renderer-ready', (ev) => {
     autoUpdater.checkForUpdatesAndNotify();
 });
 
+setInterval(() => {
+    if (notifyUpdate) {
+        autoUpdater.checkForUpdates();
+    } else {
+        autoUpdater.checkForUpdatesAndNotify();
+    }
+}, 120_000);
+
 autoUpdater.on('update-available', (info) => {
+    notifyUpdate = true;
     const version = info.version;
 
     mainWindow?.webContents.send('updateAvailable', version);
