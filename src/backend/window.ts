@@ -2,6 +2,7 @@ import { BrowserWindow, app, ipcMain, shell } from 'electron';
 import { store } from './storage';
 import path from 'path';
 import { ManualUpdateProcesses, processes } from './processes';
+import { getAllLangs } from '_/shared/lang';
 
 export let mainWindow: BrowserWindow;
 
@@ -48,6 +49,18 @@ ipcMain.on('renderer-ready', (ev) => {
     ev.sender.send('setLock', store.get('lockTop'));
     ev.sender.send('getProcesses', processes);
     ev.sender.send('version', `v${app.getVersion()}`);
+    ev.sender.send('setLang', store.get('lang'));
+});
+
+ipcMain.on('switchLang', (ev) => {
+    const index = getAllLangs().indexOf(store.get('lang'));
+    const newLang = getAllLangs()[index + 1] || getAllLangs()[0];
+
+    store.set('lang', newLang);
+
+    BrowserWindow.getAllWindows().forEach((itm) => {
+        itm.webContents.send('setLang', newLang);
+    });
 });
 
 ipcMain.on('updateProcesses', (ev) => {
@@ -64,7 +77,10 @@ ipcMain.on('lockTop', (ev) => {
 
     store.set('lockTop', !old);
     mainWindow?.setAlwaysOnTop(!old);
-    mainWindow?.webContents?.send('setLock', !old);
+
+    BrowserWindow.getAllWindows().forEach((itm) => {
+        itm.webContents.send('setLock', !old);
+    });
 });
 
 ipcMain.on('devPage', (ev) => {
@@ -73,6 +89,41 @@ ipcMain.on('devPage', (ev) => {
 
 ipcMain.on('projectPage', (ev) => {
     shell.openExternal('https://github.com/XXanderWP/ApplicationsVolumeControl');
+});
+
+ipcMain.on('openSettings', (ev) => {
+    const child = new BrowserWindow({
+        parent: mainWindow,
+        modal: true,
+        show: false,
+        frame: false,
+        // resizable: false,
+        fullscreenable: false,
+        icon: `${__dirname}/logo.png`,
+        webPreferences: {
+            devTools: !app.isPackaged,
+            preload: path.join(__dirname, './preload.bundle.js'),
+            // webSecurity: false,
+        },
+        width: 470,
+        height: 250,
+        resizable: false,
+    });
+
+    child
+        .loadFile('./index.html', {
+            query: {
+                settings: 'true',
+            },
+        })
+        .finally(() => {
+            child?.show();
+            child?.moveTop();
+        });
+
+    child.once('ready-to-show', () => {
+        child.show();
+    });
 });
 
 ipcMain.on('openContacts', (ev) => {

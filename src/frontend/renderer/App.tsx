@@ -12,6 +12,8 @@ import { OverlayTriggerType } from 'rsuite/esm/internals/Overlay/OverlayTrigger'
 import SentToUserIcon from '@rsuite/icons/SentToUser';
 import GlobalIcon from '@rsuite/icons/Global';
 import DataAuthorizeIcon from '@rsuite/icons/DataAuthorize';
+import { langData, langString, langType } from '_/shared/lang';
+import GearIcon from '@rsuite/icons/Gear';
 
 const Field = React.memo(
     (props: {
@@ -110,6 +112,8 @@ export const DrawToolTip = React.memo(
 
 function App(): JSX.Element {
     const contacts = location.search.includes('contacts');
+    const settings = location.search.includes('settings');
+    const [lang, setLang] = React.useState<langType>();
     const [version, setVersion] = React.useState<string>();
     const [updateAvailable, setUpdateAvailable] = React.useState<string>();
     const [updateDownloadProgress, setUpdateDownloadProgress] = React.useState<string>();
@@ -131,6 +135,10 @@ function App(): JSX.Element {
     useEffect(() => {
         window.ipcAPI?.listen('version', (q) => {
             setVersion(q);
+        });
+
+        window.ipcAPI?.listen('setLang', (q) => {
+            setLang(q);
         });
 
         if (!contacts) {
@@ -207,13 +215,25 @@ function App(): JSX.Element {
         window.ipcAPI?.rendererReady();
     }, []);
 
+    const LangString = React.useCallback(
+        (key: langData, ...args: (number | string | boolean)[]) => {
+            return langString(lang || 'en', key, ...args);
+        },
+        [lang],
+    );
+
+    if (!lang) {
+        return <></>;
+    }
+
     return (
         <>
             <CustomProvider theme="dark">
                 <div className="mainHeader">
                     <span className="title">
                         {APP_NAME}
-                        {contacts ? ' | Contacts page' : ''}
+                        {contacts ? ` | ${LangString('contactsPage')}` : ''}
+                        {settings ? ` | ${LangString('settingsButton')}` : ''}
                     </span>
                     <span className="control">
                         {version ? (
@@ -257,12 +277,43 @@ function App(): JSX.Element {
                     </span>
                 </div>
                 <div className="mainBlock">
-                    {contacts ? (
+                    {settings ? (
+                        <>
+                            <Button
+                                size="sm"
+                                className="newRecord"
+                                color={'violet'}
+                                appearance="ghost"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    window.ipcAPI?.sendData('switchLang', true);
+                                }}
+                            >
+                                {LangString('settingsSwitchLang')}
+                            </Button>
+
+                            <DrawToolTip trigger="hover" text={LangString('lockDesc')}>
+                                <IconButton
+                                    size="sm"
+                                    className="newRecord"
+                                    color={lock ? 'yellow' : 'blue'}
+                                    appearance="ghost"
+                                    icon={<ResizeIcon />}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        window.ipcAPI?.sendData('lockTop', true);
+                                    }}
+                                >
+                                    {lock ? LangString('lockOn') : LangString('lockOff')}
+                                </IconButton>
+                            </DrawToolTip>
+                        </>
+                    ) : contacts ? (
                         <>
                             <div className="text">
-                                This app was created in a few hours
+                                {LangString('contactsPageText1')}
                                 <br />
-                                For personal use.
+                                {LangString('contactsPageText2')}
                             </div>
                             <Grid fluid>
                                 <Row className="show-grid">
@@ -277,7 +328,7 @@ function App(): JSX.Element {
                                                 window.ipcAPI?.sendData('devPage', true);
                                             }}
                                         >
-                                            Open Developer page
+                                            {LangString('contactsPageButtonDev')}
                                         </IconButton>
                                     </Col>
                                     <Col xs={12}>
@@ -291,7 +342,7 @@ function App(): JSX.Element {
                                                 window.ipcAPI?.sendData('projectPage', true);
                                             }}
                                         >
-                                            Open Project page
+                                            {LangString('contactsPageButtonProject')}
                                         </IconButton>
                                     </Col>
                                 </Row>
@@ -302,7 +353,7 @@ function App(): JSX.Element {
                             {updateAvailable ? (
                                 <div className="updateAvailable">
                                     <div className="top">
-                                        <div>Update available ({updateAvailable})</div>
+                                        <div>{LangString('updateAvailable', updateAvailable)}</div>
                                         {updateDownloadProgress ? (
                                             updateDownloadProgress === '100' ? (
                                                 <Button
@@ -318,11 +369,14 @@ function App(): JSX.Element {
                                                         );
                                                     }}
                                                 >
-                                                    Install update
+                                                    {LangString('updateInstallButton')}
                                                 </Button>
                                             ) : (
                                                 <span>
-                                                    Downloading update: {updateDownloadProgress}%
+                                                    {LangString(
+                                                        'updateInstallProgress',
+                                                        updateDownloadProgress,
+                                                    )}
                                                 </span>
                                             )
                                         ) : (
@@ -338,12 +392,14 @@ function App(): JSX.Element {
                                                     setUpdateDownloadProgress('0');
                                                 }}
                                             >
-                                                Download new version
+                                                {LangString('updateInstallButtonDownload')}
                                             </Button>
                                         )}
                                     </div>
                                     {updateAvailableFail ? (
-                                        <div className="fail">Error when updating application</div>
+                                        <div className="fail">
+                                            {LangString('updateInstallError')}
+                                        </div>
                                     ) : (
                                         <></>
                                     )}
@@ -353,8 +409,11 @@ function App(): JSX.Element {
                             )}
                             <Grid fluid>
                                 <Row className="show-grid">
-                                    <Col xs={24 - 12}>
-                                        <DrawToolTip text="Create new controller" trigger="hover">
+                                    <Col xs={10}>
+                                        <DrawToolTip
+                                            text={LangString('recordCreateNewDesc')}
+                                            trigger="hover"
+                                        >
                                             <IconButton
                                                 size="sm"
                                                 className="newRecord"
@@ -366,30 +425,31 @@ function App(): JSX.Element {
                                                     window.ipcAPI?.sendData('createRecord', true);
                                                 }}
                                             >
-                                                New Record
+                                                {LangString('recordCreateNew')}
                                             </IconButton>
                                         </DrawToolTip>
                                     </Col>
 
-                                    <Col xs={9}>
-                                        <DrawToolTip text="Lock on top" trigger="hover">
-                                            <IconButton
-                                                size="sm"
-                                                className="newRecord"
-                                                color={lock ? 'yellow' : 'blue'}
-                                                appearance="ghost"
-                                                icon={<ResizeIcon />}
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    window.ipcAPI?.sendData('lockTop', true);
-                                                }}
-                                            >
-                                                {lock ? 'Always on top' : 'Default behavior'}
-                                            </IconButton>
-                                        </DrawToolTip>
+                                    <Col xs={10}>
+                                        <IconButton
+                                            size="sm"
+                                            className="newRecord"
+                                            color={'blue'}
+                                            appearance="ghost"
+                                            icon={<GearIcon />}
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                window.ipcAPI?.sendData('openSettings', true);
+                                            }}
+                                        >
+                                            {LangString('settingsButton')}
+                                        </IconButton>
                                     </Col>
-                                    <Col xs={3}>
-                                        <DrawToolTip text="Contacts" trigger="hover">
+                                    <Col xs={4}>
+                                        <DrawToolTip
+                                            text={LangString('contactsButtonTooltip')}
+                                            trigger="hover"
+                                        >
                                             <IconButton
                                                 size="sm"
                                                 className="newRecord"
@@ -407,9 +467,9 @@ function App(): JSX.Element {
                             </Grid>
 
                             {!records ? (
-                                <div className="loading">Loading data</div>
+                                <div className="loading">{LangString('loadingData')}</div>
                             ) : !records.length ? (
-                                <div className="loading">Empty data</div>
+                                <div className="loading">{LangString('emptyData')}</div>
                             ) : (
                                 <></>
                             )}
@@ -433,7 +493,7 @@ function App(): JSX.Element {
                                                     {')'}
                                                 </span>
                                                 <span className="name">
-                                                    {record.name || 'EMPTY NAME'}
+                                                    {record.name || LangString('emptyName')}
                                                 </span>
                                                 <span className="volume">
                                                     [{record.min}% ... {record.max}%]
@@ -452,7 +512,7 @@ function App(): JSX.Element {
                                             <div className="buttons">
                                                 {removeAccept === record.id ? (
                                                     <>
-                                                        <span>Are you sure?</span>
+                                                        <span>{LangString('removeAccept')}</span>
                                                         <Button
                                                             appearance="ghost"
                                                             size="xs"
@@ -483,7 +543,7 @@ function App(): JSX.Element {
                                                                 });
                                                             }}
                                                         >
-                                                            Yes, remove
+                                                            {LangString('removeAcceptYes')}
                                                         </Button>
                                                         <Button
                                                             appearance="ghost"
@@ -495,7 +555,7 @@ function App(): JSX.Element {
                                                                 setRemoveAccept(undefined);
                                                             }}
                                                         >
-                                                            No, Cancel
+                                                            {LangString('removeAcceptNo')}
                                                         </Button>
                                                     </>
                                                 ) : (
@@ -518,7 +578,9 @@ function App(): JSX.Element {
                                                                 });
                                                             }}
                                                         >
-                                                            {edit === record.id ? 'Close' : 'Edit'}
+                                                            {edit === record.id
+                                                                ? LangString('recordEditClose')
+                                                                : LangString('recordEdit')}
                                                         </Button>
                                                         <Button
                                                             appearance="ghost"
@@ -528,7 +590,7 @@ function App(): JSX.Element {
                                                                 setRemoveAccept(record.id);
                                                             }}
                                                         >
-                                                            Remove
+                                                            {LangString('recordRemove')}
                                                         </Button>
                                                         <Button
                                                             appearance="ghost"
@@ -548,7 +610,9 @@ function App(): JSX.Element {
                                                                 );
                                                             }}
                                                         >
-                                                            {record.status ? 'ON' : 'OFF'}
+                                                            {record.status
+                                                                ? LangString('recordStatusOn')
+                                                                : LangString('recordStatusOff')}
                                                         </Button>
                                                     </>
                                                 )}
@@ -562,7 +626,7 @@ function App(): JSX.Element {
                                                     spacing={10}
                                                 >
                                                     <Field
-                                                        label="Name"
+                                                        label={LangString('recordEditName')}
                                                         as={Input}
                                                         maxLen={25}
                                                         key={`name_editor_${record.name}`}
@@ -575,7 +639,7 @@ function App(): JSX.Element {
                                                         }}
                                                     />
                                                     <Field
-                                                        label="Choose process"
+                                                        label={LangString('recordEditProcess')}
                                                         key={`name_editor_${record.process}`}
                                                         as={SelectPicker}
                                                         data={[
@@ -584,7 +648,11 @@ function App(): JSX.Element {
                                                                 (a) => a.name === record.process,
                                                             )
                                                                 ? {
-                                                                      label: `${record.process} [CLOSED]`,
+                                                                      label: `${
+                                                                          record.process
+                                                                      } [${LangString(
+                                                                          'recordEditProcessClosed',
+                                                                      )}]`,
                                                                       value: record.process,
                                                                   }
                                                                 : (undefined as any),
@@ -616,7 +684,7 @@ function App(): JSX.Element {
                                                         }}
                                                     />
                                                     <Field
-                                                        label="Select hotkey"
+                                                        label={LangString('recordEditHotkey')}
                                                         key={`hotkey_editor_${record.hotkey}`}
                                                         as={SelectPicker}
                                                         data={[
@@ -637,7 +705,7 @@ function App(): JSX.Element {
                                                     />
                                                     <Field
                                                         key={`name_editor_volume_min_${record.min}`}
-                                                        label="Minimum volume"
+                                                        label={LangString('recordEditVolumeMin')}
                                                         as={Slider}
                                                         defaultValue={record.min || 0}
                                                         onSave={(val) => {
@@ -649,7 +717,7 @@ function App(): JSX.Element {
                                                     />
                                                     <Field
                                                         key={`name_editor_volume_max_${record.max}`}
-                                                        label="Maximum volume"
+                                                        label={LangString('recordEditVolumeMax')}
                                                         as={Slider}
                                                         defaultValue={record.max || 0}
                                                         onSave={(val) => {
