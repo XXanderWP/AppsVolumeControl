@@ -30,6 +30,7 @@
 
 - **Process Volume Control**: Add specific processes and configure their minimum and maximum volume levels for quick adjustment.
 - **Hotkey Support**: Assign a hotkey to toggle the volume between the preset minimum and maximum levels for added convenience.
+- **Multilanguage support**: At the moment English, Ukrainian and Russian languages are supported. I can add other languages on request, but you should take into account that it will be only machine translation
 - **Always on Top**: Option to keep the application window always visible on top of other windows for easy access.
 - **Customizable Settings**: Flexible volume configuration tailored to each process.
 
