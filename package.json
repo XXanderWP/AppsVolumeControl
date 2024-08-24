@@ -112,5 +112,5 @@
         "webpack-cli": "^4.10.0",
         "webpack-merge": "^5.8.0"
     },
-    "license": "MIT"
+    "license": "CC BY-NC 4.0"
 }
