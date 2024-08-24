@@ -51,6 +51,9 @@
     "author": "XXanderWP <xanderwp@pm.me> (https://xanderwp.site/)",
     "dependencies": {
         "@babel/runtime": "^7.21.0",
+        "@overwolf/ow-electron": "^22.3.13",
+        "@overwolf/ow-electron-builder": "^23.6.2",
+        "@overwolf/ow-electron-packages-types": "^0.0.9",
         "bindings": "^1.5.0",
         "bufferutil": "^4.0.7",
         "electron-store": "^8.1.0",
