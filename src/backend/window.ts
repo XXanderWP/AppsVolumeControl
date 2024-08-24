@@ -88,7 +88,7 @@ ipcMain.on('devPage', (ev) => {
 });
 
 ipcMain.on('projectPage', (ev) => {
-    shell.openExternal('https://github.com/XXanderWP/ApplicationsVolumeControl');
+    shell.openExternal('https://github.com/XXanderWP/AppsVolumeControl');
 });
 
 ipcMain.on('openSettings', (ev) => {
