@@ -495,16 +495,31 @@ function App(): JSX.Element {
                                                 <span className="name">
                                                     {record.name || LangString('emptyName')}
                                                 </span>
-                                                <span className="volume">
-                                                    [{record.min}% ... {record.max}%]
-                                                    {process ? (
-                                                        <> ({(process.volume * 100).toFixed(0)}%)</>
-                                                    ) : (
-                                                        <></>
-                                                    )}
-                                                </span>
-                                                {record.hotkey ? (
-                                                    <span className="hotkey">{record.hotkey}</span>
+                                                {removeAccept !== record.id ? (
+                                                    <>
+                                                        <span className="volume">
+                                                            [{record.min}% ... {record.max}%]
+                                                            {process ? (
+                                                                <>
+                                                                    {' '}
+                                                                    (
+                                                                    {(process.volume * 100).toFixed(
+                                                                        0,
+                                                                    )}
+                                                                    %)
+                                                                </>
+                                                            ) : (
+                                                                <></>
+                                                            )}
+                                                        </span>
+                                                        {record.hotkey ? (
+                                                            <span className="hotkey">
+                                                                {record.hotkey}
+                                                            </span>
+                                                        ) : (
+                                                            <></>
+                                                        )}
+                                                    </>
                                                 ) : (
                                                     <></>
                                                 )}
