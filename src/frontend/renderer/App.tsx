@@ -111,6 +111,9 @@ export const DrawToolTip = React.memo(
 function App(): JSX.Element {
     const contacts = location.search.includes('contacts');
     const [version, setVersion] = React.useState<string>();
+    const [updateAvailable, setUpdateAvailable] = React.useState<string>();
+    const [updateDownloadProgress, setUpdateDownloadProgress] = React.useState<string>();
+    const [updateAvailableFail, setUpdateAvailableFail] = React.useState(false);
     const [edit, setEdit] = React.useState<string>();
     const [removeAccept, setRemoveAccept] = React.useState<string>();
     const [records, setRecords] = React.useState<ControllerData[]>();
@@ -148,6 +151,19 @@ function App(): JSX.Element {
 
             window.ipcAPI?.listen('setLock', (q) => {
                 setLock(q);
+            });
+
+            window.ipcAPI?.listen('updateAvailable', (q) => {
+                setUpdateAvailable(q);
+            });
+
+            window.ipcAPI?.listen('downloadUpdate', (q) => {
+                setUpdateDownloadProgress(q);
+            });
+
+            window.ipcAPI?.listen('updateAvailableFail', () => {
+                setUpdateAvailableFail(true);
+                setUpdateDownloadProgress(undefined as any);
             });
 
             window.ipcAPI?.listen('getProcesses', (processes) => {
@@ -283,6 +299,58 @@ function App(): JSX.Element {
                         </>
                     ) : (
                         <>
+                            {updateAvailable ? (
+                                <div className="updateAvailable">
+                                    <div className="top">
+                                        <div>Update available ({updateAvailable})</div>
+                                        {updateDownloadProgress ? (
+                                            updateDownloadProgress === '100' ? (
+                                                <Button
+                                                    appearance="ghost"
+                                                    size="xs"
+                                                    color={'red'}
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+
+                                                        window.ipcAPI?.sendData(
+                                                            'install_update',
+                                                            true,
+                                                        );
+                                                    }}
+                                                >
+                                                    Install update
+                                                </Button>
+                                            ) : (
+                                                <span>
+                                                    Downloading update: {updateDownloadProgress}%
+                                                </span>
+                                            )
+                                        ) : (
+                                            <Button
+                                                appearance="ghost"
+                                                size="xs"
+                                                color={'blue'}
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+
+                                                    window.ipcAPI?.sendData('downloadUpdate', true);
+
+                                                    setUpdateDownloadProgress('0');
+                                                }}
+                                            >
+                                                Download new version
+                                            </Button>
+                                        )}
+                                    </div>
+                                    {updateAvailableFail ? (
+                                        <div className="fail">Error when updating application</div>
+                                    ) : (
+                                        <></>
+                                    )}
+                                </div>
+                            ) : (
+                                <></>
+                            )}
                             <Grid fluid>
                                 <Row className="show-grid">
                                     <Col xs={24 - 12}>

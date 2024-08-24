@@ -1,13 +1,14 @@
-import path from 'path';
 import { APP_NAME } from '_/shared/app';
-import { BrowserWindow, app, ipcMain, Tray, Menu, globalShortcut, shell } from 'electron';
+import { app, ipcMain, Tray, Menu, globalShortcut } from 'electron';
 import './controller';
 import { VolumeController } from './controller';
 import { store } from './storage';
 import { ControllerData } from '_/shared/controller';
 import { HotkeysList } from '_/shared/hotkeys';
 import { setVolume } from '../extra/volume.node';
-import { ManualUpdateProcesses, SetPidVolume, processes } from './processes';
+import './updater';
+import { ManualUpdateProcesses, SetPidVolume } from './processes';
+import { CreateMainWindow, mainWindow } from './window';
 let controllers: VolumeController[] = [];
 
 app.setName(APP_NAME);
@@ -74,20 +75,10 @@ app.whenReady()
         /* no action */
     });
 
-ipcMain.on('minimizeWindow', (event, arg) => {
-    BrowserWindow.getFocusedWindow()?.minimize();
-});
-
-ipcMain.on('closeWindow', (event, arg) => {
-    BrowserWindow.getFocusedWindow()?.close();
-});
-
 ipcMain.on('relaunch', (event, arg) => {
     app.relaunch();
     app.exit();
 });
-
-let mainWindow: BrowserWindow;
 
 app.on('ready', async () => {
     await ManualUpdateProcesses();
@@ -101,40 +92,7 @@ app.on('ready', async () => {
         controllers.push(item);
     });
 
-    mainWindow = new BrowserWindow({
-        width: 500,
-        height: 300,
-        minWidth: 500,
-        minHeight: 300,
-        webPreferences: {
-            devTools: !app.isPackaged,
-            preload: path.join(__dirname, './preload.bundle.js'),
-            // webSecurity: false,
-        },
-        show: false,
-        frame: false,
-        // resizable: false,
-        fullscreenable: false,
-        icon: `${__dirname}/logo.png`,
-    });
-
-    mainWindow.loadFile('./index.html').finally(() => {
-        mainWindow?.show();
-        mainWindow?.moveTop();
-
-        if (store.get('lockTop')) {
-            mainWindow?.setAlwaysOnTop(true);
-        }
-    });
-
-    mainWindow.on('closed', () => {});
-});
-
-ipcMain.on('renderer-ready', (ev) => {
-    ev.sender.send('sendRecords', store.get('records'));
-    ev.sender.send('setLock', store.get('lockTop'));
-    ev.sender.send('getProcesses', processes);
-    ev.sender.send('version', `v${app.getVersion()}`);
+    CreateMainWindow();
 });
 
 ipcMain.on('createRecord', (ev) => {
@@ -194,64 +152,4 @@ ipcMain.on('updateParam', (ev, param: Partial<ControllerData> & { id: string }) 
     store.set('records', [...old]);
 
     ev.sender.send('updateRecord', old[index]);
-});
-
-ipcMain.on('updateProcesses', (ev) => {
-    ManualUpdateProcesses();
-    ev.sender.send('getProcesses', processes);
-});
-
-ipcMain.on('restartApp', (ev) => {
-    app.relaunch();
-});
-
-ipcMain.on('lockTop', (ev) => {
-    const old = store.get('lockTop');
-
-    store.set('lockTop', !old);
-    mainWindow?.setAlwaysOnTop(!old);
-    mainWindow?.webContents?.send('setLock', !old);
-});
-
-ipcMain.on('devPage', (ev) => {
-    shell.openExternal('https://github.com/XXanderWP');
-});
-
-ipcMain.on('projectPage', (ev) => {
-    shell.openExternal('https://github.com/XXanderWP/ApplicationsVolumeControl');
-});
-
-ipcMain.on('openContacts', (ev) => {
-    const child = new BrowserWindow({
-        parent: mainWindow,
-        modal: true,
-        show: false,
-        frame: false,
-        // resizable: false,
-        fullscreenable: false,
-        icon: `${__dirname}/logo.png`,
-        webPreferences: {
-            devTools: !app.isPackaged,
-            preload: path.join(__dirname, './preload.bundle.js'),
-            // webSecurity: false,
-        },
-        width: 470,
-        height: 250,
-        resizable: false,
-    });
-
-    child
-        .loadFile('./index.html', {
-            query: {
-                contacts: 'true',
-            },
-        })
-        .finally(() => {
-            child?.show();
-            child?.moveTop();
-        });
-
-    child.once('ready-to-show', () => {
-        child.show();
-    });
 });

@@ -57,6 +57,7 @@
         "bindings": "^1.5.0",
         "bufferutil": "^4.0.7",
         "electron-store": "^8.1.0",
+        "electron-updater": "^6.2.1",
         "eslint-plugin-unused-imports": "^2.0.0",
         "nan": "^2.18.0",
         "node-addon-api": "^7.0.0",
